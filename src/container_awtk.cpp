@@ -264,7 +264,7 @@ void container_awtk::draw_list_marker(litehtml::uint_ptr hdc, const litehtml::li
       rect_t r = rect_from_position(marker.pos);
 
       canvas_translate(c, -ox, -oy);
-      canvas_draw_icon_in_rect(c, &img, &r);
+      canvas_draw_image_ex(c, &img, IMAGE_DRAW_ICON, &r);
       canvas_translate(c, ox, oy);
     }
   } else {
@@ -330,35 +330,33 @@ void container_awtk::draw_background(litehtml::uint_ptr hdc, const litehtml::bac
   }
 
   if (bg.image.size() > 0) {
-    rect_t r;
     bitmap_t img;
     const char* src = bg.image.c_str();
+    rect_t r = rect_from_position(bg.clip_box);
+
     if (awtk_load_image(this->view, src, m_base_url.c_str(), &img) == RET_OK) {
       switch (bg.repeat) {
         case litehtml::background_repeat_no_repeat:
           canvas_translate(c, -ox, -oy);
-          canvas_draw_image_at(c, &img, bg.position_x, bg.position_y);
+          canvas_draw_image_ex(c, &img, IMAGE_DRAW_ICON, &r);
           canvas_translate(c, ox, oy);
           break;
 
         case litehtml::background_repeat_repeat_x:
-          r = rect_from_position(bg.clip_box);
           canvas_translate(c, -ox, -oy);
-          canvas_draw_image_repeat_x(c, &img, &r);
+          canvas_draw_image_ex(c, &img, IMAGE_DRAW_REPEAT_X, &r);
           canvas_translate(c, ox, oy);
           break;
 
         case litehtml::background_repeat_repeat_y:
-          r = rect_from_position(bg.clip_box);
           canvas_translate(c, -ox, -oy);
-          canvas_draw_image_repeat_y(c, &img, &r);
+          canvas_draw_image_ex(c, &img, IMAGE_DRAW_REPEAT_Y, &r);
           canvas_translate(c, ox, oy);
           break;
 
         case litehtml::background_repeat_repeat:
-          r = rect_from_position(bg.clip_box);
           canvas_translate(c, -ox, -oy);
-          canvas_draw_image_repeat(c, &img, &r);
+          canvas_draw_image_ex(c, &img, IMAGE_DRAW_REPEAT, &r);
           canvas_translate(c, ox, oy);
           break;
         default:
