@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-type" content="text/html;charset=UTF-8">
+<script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"> </script>
+<script type="text/x-mathjax-config">MathJax.Hub.Config({"tex2jax": {"inlineMath": [['$','$'], ['\\(','\\)']]}});</script>
+<script type="text/x-mathjax-config">MathJax.Hub.Config({"HTML-CSS": {"availableFonts":["TeX"],"scale": 150}});</script>
+
+<style>
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+body {
+	font-size: 14px;
+	padding: 0 12px;
+	line-height: 22px;
+	word-wrap: break-word;
+}
+
+#code-csp-warning {
+	position: fixed;
+	top: 0;
+	right: 0;
+	color: white;
+	margin: 16px;
+	text-align: center;
+	font-size: 12px;
+	background-color:#444444;
+	cursor: pointer;
+	padding: 6px;
+	box-shadow: 1px 1px 1px rgba(0,0,0,.25);
+}
+
+#code-csp-warning:hover {
+	text-decoration: none;
+	background-color:#007acc;
+	box-shadow: 2px 2px 2px rgba(0,0,0,.25);
+}
+
+
+body.scrollBeyondLastLine {
+	margin-bottom: calc(100vh - 22px);
+}
+
+body.showEditorSelection .code-line {
+	position: relative;
+}
+
+body.showEditorSelection .code-active-line:before,
+body.showEditorSelection .code-line:hover:before {
+	content: "";
+	display: block;
+	position: absolute;
+	top: 0;
+	left: -12px;
+	height: 100%;
+}
+
+body.showEditorSelection li.code-active-line:before,
+body.showEditorSelection li.code-line:hover:before {
+	left: -30px;
+}
+
+.vscode-light.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.15);
+}
+
+.vscode-light.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(0, 0, 0, 0.40);
+}
+
+.vscode-dark.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.4);
+}
+
+.vscode-dark.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 255, 255, 0.60);
+}
+
+.vscode-high-contrast.showEditorSelection .code-active-line:before {
+	border-left: 3px solid rgba(255, 160, 0, 0.7);
+}
+
+.vscode-high-contrast.showEditorSelection .code-line:hover:before {
+	border-left: 3px solid rgba(255, 160, 0, 1);
+}
+
+img {
+	max-width: 100%;
+	max-height: 100%;
+}
+
+a {
+	color: #4080D0;
+	text-decoration: none;
+}
+
+a:focus,
+input:focus,
+select:focus,
+textarea:focus {
+	outline: 1px solid -webkit-focus-ring-color;
+	outline-offset: -1px;
+}
+
+hr {
+	border: 0;
+	height: 2px;
+	border-bottom: 2px solid;
+}
+
+h1 {
+	padding-bottom: 0.3em;
+	line-height: 1.2;
+	border-bottom-width: 1px;
+	border-bottom-style: solid;
+}
+
+h1, h2, h3 {
+	font-weight: normal;
+}
+
+h1 code,
+h2 code,
+h3 code,
+h4 code,
+h5 code,
+h6 code {
+	font-size: inherit;
+	line-height: auto;
+}
+
+a:hover {
+	color: #4080D0;
+	text-decoration: underline;
+}
+
+table {
+	border-collapse: collapse;
+}
+
+table > thead > tr > th {
+	text-align: left;
+	border-bottom: 1px solid;
+}
+
+table > thead > tr > th,
+table > thead > tr > td,
+table > tbody > tr > th,
+table > tbody > tr > td {
+	padding: 5px 10px;
+}
+
+table > tbody > tr + tr > td {
+	border-top: 1px solid;
+}
+
+blockquote {
+	margin: 0 7px 0 5px;
+	padding: 0 16px 0 10px;
+	border-left: 5px solid;
+}
+
+code {
+	font-size: 14px;
+	line-height: 19px;
+}
+
+body.wordWrap pre {
+	white-space: pre-wrap;
+}
+
+.mac code {
+	font-size: 12px;
+	line-height: 18px;
+}
+
+pre:not(.hljs),
+pre.hljs code > div {
+	padding: 16px;
+	border-radius: 3px;
+	overflow: auto;
+}
+
+/** Theming */
+
+.vscode-light,
+.vscode-light pre code {
+	color: rgb(30, 30, 30);
+}
+
+.vscode-dark,
+.vscode-dark pre code {
+	color: #DDD;
+}
+
+.vscode-high-contrast,
+.vscode-high-contrast pre code {
+	color: white;
+}
+
+.vscode-light code {
+	color: #A31515;
+}
+
+.vscode-dark code {
+	color: #D7BA7D;
+}
+
+.vscode-light pre:not(.hljs),
+.vscode-light code > div {
+	background-color: rgba(220, 220, 220, 0.4);
+}
+
+.vscode-dark pre:not(.hljs),
+.vscode-dark code > div {
+	background-color: rgba(10, 10, 10, 0.4);
+}
+
+.vscode-high-contrast pre:not(.hljs),
+.vscode-high-contrast code > div {
+	background-color: rgb(0, 0, 0);
+}
+
+.vscode-high-contrast h1 {
+	border-color: rgb(0, 0, 0);
+}
+
+.vscode-light table > thead > tr > th {
+	border-color: rgba(0, 0, 0, 0.69);
+}
+
+.vscode-dark table > thead > tr > th {
+	border-color: rgba(255, 255, 255, 0.69);
+}
+
+.vscode-light h1,
+.vscode-light hr,
+.vscode-light table > tbody > tr + tr > td {
+	border-color: rgba(0, 0, 0, 0.18);
+}
+
+.vscode-dark h1,
+.vscode-dark hr,
+.vscode-dark table > tbody > tr + tr > td {
+	border-color: rgba(255, 255, 255, 0.18);
+}
+
+.vscode-light blockquote,
+.vscode-dark blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.vscode-high-contrast blockquote {
+	background: transparent;
+	border-color: #fff;
+}
+</style>
+
+<style>
+/* Tomorrow Theme */
+/* http://jmblog.github.com/color-themes-for-google-code-highlightjs */
+/* Original theme - https://github.com/chriskempson/tomorrow-theme */
+
+/* Tomorrow Comment */
+.hljs-comment,
+.hljs-quote {
+	color: #8e908c;
+}
+
+/* Tomorrow Red */
+.hljs-variable,
+.hljs-template-variable,
+.hljs-tag,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class,
+.hljs-regexp,
+.hljs-deletion {
+	color: #c82829;
+}
+
+/* Tomorrow Orange */
+.hljs-number,
+.hljs-built_in,
+.hljs-builtin-name,
+.hljs-literal,
+.hljs-type,
+.hljs-params,
+.hljs-meta,
+.hljs-link {
+	color: #f5871f;
+}
+
+/* Tomorrow Yellow */
+.hljs-attribute {
+	color: #eab700;
+}
+
+/* Tomorrow Green */
+.hljs-string,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-addition {
+	color: #718c00;
+}
+
+/* Tomorrow Blue */
+.hljs-title,
+.hljs-section {
+	color: #4271ae;
+}
+
+/* Tomorrow Purple */
+.hljs-keyword,
+.hljs-selector-tag {
+	color: #8959a8;
+}
+
+.hljs {
+	display: block;
+	overflow-x: auto;
+	color: #4d4d4c;
+	padding: 0.5em;
+}
+
+.hljs-emphasis {
+	font-style: italic;
+}
+
+.hljs-strong {
+	font-weight: bold;
+}
+</style>
+
+<style>
+/*
+ * Markdown PDF CSS
+ */
+
+pre {
+	background-color: #f8f8f8;
+	border: 1px solid #cccccc;
+	border-radius: 3px;
+	overflow-x: auto;
+	white-space: pre-wrap;
+	overflow-wrap: break-word;
+}
+
+pre:not(.hljs) {
+	padding: 23px;
+	line-height: 19px;
+}
+
+blockquote {
+	background: rgba(127, 127, 127, 0.1);
+	border-color: rgba(0, 122, 204, 0.5);
+}
+
+.emoji {
+	height: 1.4em;
+}
+
+/* for inline code */
+:not(pre):not(.hljs) > code {
+	color: #C9AE75; /* Change the old color so it seems less like an error */
+	font-size: inherit;
+}
+
+</style>
+
+</head>
+<body>
+<h1 id="awtk-toolkit-anywhere">AWTK = Toolkit AnyWhere</h1>
+<p><img src="images/zlg_adv.jpeg" alt="zlg"></p>
+<h2 id="%E4%B8%80%E3%80%81%E4%BB%8B%E7%BB%8D">一、介绍</h2>
+<p><a href="README.md">AWTK</a> 全称 Toolkit AnyWhere，是 <a href="http://www.zlg.cn/">ZLG</a> 开发的开源 GUI 引擎，旨在为嵌入式系统、WEB、各种小程序、手机和 PC 打造的通用 GUI 引擎，为用户提供一个功能强大、高效可靠、简单易用、可轻松做出炫酷效果的 GUI 引擎。</p>
+<blockquote>
+<p>欢迎广大开发者一起参与开发：<a href="docs/awtk_ecology.md">生态共建计划</a>。</p>
+</blockquote>
+<h4 id="awtk-%E5%AF%93%E6%84%8F%E6%9C%89%E4%B8%A4%E4%B8%AA%E6%96%B9%E9%9D%A2%EF%BC%9A"><a href="README.md">AWTK</a> 寓意有两个方面：</h4>
+<ul>
+<li>Toolkit AnyWhere。</li>
+<li>ZLG 物联网操作系统 AWorksOS 内置 GUI。</li>
+</ul>
+<h4 id="awtk-%E6%BA%90%E7%A0%81%E4%BB%93%E5%BA%93%EF%BC%9A"><a href="README.md">AWTK</a> 源码仓库：</h4>
+<ul>
+<li>主源码仓库：<a href="https://github.com/zlgopen/awtk">https://github.com/zlgopen/awtk</a></li>
+<li>镜像源码仓库：<a href="https://gitee.com/zlgopen/awtk">https://gitee.com/zlgopen/awtk</a></li>
+<li>稳定版整合包：https://pan.baidu.com/s/1_oRgj67M-I4kivk-YzwFWA   提取码：1cmi</li>
+</ul>
+<h4 id="awtk-designer-%E7%95%8C%E9%9D%A2%E8%AE%BE%E8%AE%A1%E5%B7%A5%E5%85%B7%EF%BC%9A">AWTK Designer 界面设计工具：</h4>
+<ul>
+<li>不再需要手写 XML</li>
+<li>拖拽方式设计界面，所见即所得</li>
+<li>快速预览，一键打包资源</li>
+<li>注册及下载地址：https://awtk.zlg.cn</li>
+</ul>
+<p><img src="images/designer.png" alt="AWTK Designer"></p>
+<h4 id="%E8%BF%90%E8%A1%8C%E6%95%88%E6%9E%9C%E6%88%AA%E5%9B%BE%EF%BC%9A">运行效果截图：</h4>
+<p><img src="images/chart_main.png" alt="Chart-Demo"></p>
+<p><img src="images/musicplayer_main.png" alt="MusicPlayer-Demo"></p>
+<p><img src="images/smartwatch_main.png" alt="Watch"></p>
+<h2 id="%E4%BA%8C%E3%80%81%E6%9C%80%E7%BB%88%E7%9B%AE%E6%A0%87%EF%BC%9A">二、最终目标：</h2>
+<ul>
+<li>支持开发嵌入式应用程序。✔</li>
+<li>支持开发 Linux 应用程序。✔</li>
+<li>支持开发 MacOS 应用程序。✔</li>
+<li>支持开发 Windows 应用程序。✔</li>
+<li>支持开发 Web APP。✔</li>
+<li>支持开发 Android 应用程序。✔</li>
+<li>支持开发 iOS 应用程序。✔</li>
+<li>支持开发微信小程序。</li>
+<li>支持开发支付宝小程序。</li>
+<li>支持开发百度小程序。</li>
+<li>支持开发 2D 小游戏。</li>
+</ul>
+<h2 id="%E4%B8%89%E3%80%81%E4%B8%BB%E8%A6%81%E7%89%B9%E8%89%B2">三、主要特色</h2>
+<h3 id="1-%E8%B7%A8%E5%B9%B3%E5%8F%B0">1. 跨平台</h3>
+<p><a href="README.md">AWTK</a> 是跨平台的，这有两个方面的意思：</p>
+<ul>
+<li>
+<p>AWTK 本身是跨平台的。目前支持的平台有 ZLG AWorksOS、Windows、Linux、MacOS、嵌入式 Linux、Android、iOS、Web 和嵌入式裸系统，可以轻松的移植到各种 RTOS 上。AWTK 以后也可以运行在各种小程序平台上运行。</p>
+</li>
+<li>
+<p>AWTK 同时还提供了一套跨平台的基础工具库。其中包括链表、数组、字符串 (UTF8 和 widechar)，事件发射器、值、对象、文件系统、互斥锁和线程、表达式和字符串解析等等，让你用 AWTK 开发的应用程序可以真正跨平台运行。</p>
+</li>
+</ul>
+<h3 id="2-%E9%AB%98%E6%95%88">2. 高效</h3>
+<p><a href="README.md">AWTK</a> 通过一系列的手段保证 AWTK 应用程序高效运行：</p>
+<ul>
+<li>通过脏矩算法只更新变化的部分。</li>
+<li>支持 3 FrameBuffer 让界面以最高帧率运行 （可选）。</li>
+<li>UI 描述文件和主题文件使用高效的二进制格式，解析在瞬间完成。</li>
+<li>支持各种 GPU 加速接口。如 OpenGL、DirectX、Vulkan 和 Metal 等。</li>
+<li>支持嵌入式平台的各种 2D 加速接口。目前 STM32 的 DMA2D 和 NXP 的 PXP 接口，厂家可以轻松扩展自己的加速接口。</li>
+</ul>
+<h3 id="3-%E7%A8%B3%E5%AE%9A">3. 稳定</h3>
+<p><a href="README.md">AWTK</a> 通过下列方式极力让代码稳定可靠：</p>
+<ul>
+<li>使用 cppcheck 和 facebook infer 进行静态检查。</li>
+<li>使用 valgrind 进行动态内存检查。</li>
+<li>近两万行的单元测试代码。</li>
+<li>ZLG 强大 GUI 团队的支持。</li>
+<li>经过多个实际项目验证。</li>
+<li>多平台 / 多编译器验证。</li>
+<li>优秀的架构设计。</li>
+<li>Code Review。</li>
+<li>手工测试。</li>
+</ul>
+<h3 id="4-%E5%BC%BA%E5%A4%A7">4. 强大</h3>
+<ul>
+<li>丰富的控件 （持续增加中）。</li>
+<li>支持各种图片格式 (png/jpg/gif/svg)。</li>
+<li>支持各种字体格式 （点阵和矢量）。</li>
+<li>支持窗口动画。</li>
+<li>支持控件动画。</li>
+<li>支持高清屏。</li>
+<li>支持界面描述文件。</li>
+<li>支持主题描述文件。</li>
+<li>主题切换实时生效。</li>
+<li>支持控件布局策略。</li>
+<li>支持对话框高亮策略。</li>
+<li>丰富的辅助工具。</li>
+<li>支持从低端的 Cortex M3 到各种高端 CPU。</li>
+<li>支持无文件系统和自定义的文件系统。</li>
+<li>支持裸系统和 RTOS。</li>
+<li>支持事件录制与重放进行压力测试。</li>
+<li>支持 Appium 进行全自动化 UI 测试。</li>
+</ul>
+<h3 id="5-%E6%98%93%E7%94%A8">5. 易用</h3>
+<ul>
+<li>大量的示例代码。</li>
+<li>完善的 API 文档和使用文档。</li>
+<li>ZLG 强大的技术支持团队。</li>
+<li>用 AWTK 本身开发的 <a href="https://awtk.zlg.cn">界面编辑器</a>。</li>
+<li>声明式的界面描述语言。一行代码启用控件动画，启用窗口动画，显示图片 (png/jpg/svg/gif)。</li>
+</ul>
+<h3 id="6-%E9%AB%98%E5%BA%A6%E6%89%A9%E5%B1%95%E6%80%A7">6. 高度扩展性</h3>
+<ul>
+<li>可以扩展自己的控件。</li>
+<li>可以扩展自己的动画。</li>
+<li>可以实现自己的主循环。</li>
+<li>可以扩展自己的软键盘。</li>
+<li>可以扩展自己的图片加载器。</li>
+<li>可以扩展自己的字体加载器。</li>
+<li>可以扩展自己的输入法引擎。</li>
+<li>可以扩展自己的控件布局算法。</li>
+<li>可以扩展自己的对话框高亮策略。</li>
+<li>可以实现自己的 LCD 接口。</li>
+<li>可以扩展自己的矢量引擎 （如使用 skia/cairo)。</li>
+<li>所有扩展组件和内置组件具有相同的待遇。</li>
+</ul>
+<h3 id="7-%E5%A4%9A%E7%A7%8D%E5%BC%80%E5%8F%91%E8%AF%AD%E8%A8%80">7. 多种开发语言</h3>
+<p><a href="README.md">AWTK</a> 本身是用 C 语言开发的，可以通过 IDL 生成各种脚本语言的绑定。生成的绑定代码不是简单的把 C 语言的 API 映射到脚本语言，而是生成脚本语言原生代码风格的 API。目前支持以下语言 （以后根据需要增加）：</p>
+<ul>
+<li>C</li>
+<li>C++</li>
+<li>lua</li>
+<li>java</li>
+<li>python</li>
+<li>Javascript on jerryscript</li>
+<li>Javascript on nodejs</li>
+<li>Javascript on quickjs</li>
+</ul>
+<h3 id="8-%E5%9B%BD%E9%99%85%E5%8C%96">8. 国际化</h3>
+<ul>
+<li>支持 Unicode。</li>
+<li>支持输入法。</li>
+<li>支持字符串翻译 （实时生效）。</li>
+<li>支持图片翻译 （实时生效）。</li>
+<li>文字双向排版。</li>
+</ul>
+<h3 id="9-%E4%B8%BA%E5%B5%8C%E5%85%A5%E5%BC%8F%E8%BD%AF%E4%BB%B6%E5%AE%9A%E5%88%B6%E7%9A%84-mvvm-%E6%A1%86%E6%9E%B6%EF%BC%8C%E5%BD%BB%E5%BA%95%E5%88%86%E7%A6%BB%E7%94%A8%E6%88%B7%E7%95%8C%E9%9D%A2%E5%92%8C%E4%B8%9A%E5%8A%A1%E9%80%BB%E8%BE%91%E3%80%82">9. 为嵌入式软件定制的 MVVM 框架，彻底分离用户界面和业务逻辑。</h3>
+<ul>
+<li>性能高。</li>
+<li>内存开销小。</li>
+<li>隔离更彻底。</li>
+<li>可移植到其它 GUI。</li>
+<li>代码小 (~5000 行）。</li>
+<li>无需学习 AWTK 控件本身的 API。</li>
+<li>支持多种编程语言（目前支持 C/JS)。</li>
+</ul>
+<blockquote>
+<p>详情请参考：https://github.com/zlgopen/awtk-mvvm</p>
+</blockquote>
+<h3 id="10-%E5%BC%80%E6%94%BE%E6%BA%90%E7%A0%81%EF%BC%8C%E5%85%8D%E8%B4%B9%E5%95%86%E7%94%A8-lgpl%E3%80%82">10. 开放源码，免费商用 (LGPL)。</h3>
+<blockquote>
+<p>欢迎对照 <a href="https://github.com/zlgopen/gui-lib-evaluation">《GUI 引擎评价指标》</a> 进行评测。</p>
+</blockquote>
+<h2 id="%E5%9B%9B%E3%80%81%E6%A8%A1%E6%8B%9F%E8%BF%90%E8%A1%8C%EF%BC%9A">四、模拟运行：</h2>
+<h3 id="%E4%B8%8B%E8%BD%BD%E4%BB%A3%E7%A0%81">下载代码</h3>
+<ul>
+<li>用 git 下载</li>
+</ul>
+<blockquote>
+<p><a href="https://git-scm.com/download/win">Windows 下的 git</a></p>
+</blockquote>
+<p><strong>下载代码</strong></p>
+<pre class="hljs"><code><div>git clone https://github.com/zlgopen/awtk.git
+</div></code></pre>
+<blockquote>
+<p>国内用户推荐使用：https://hub.fastgit.org/zlgopen/awtk.git</p>
+</blockquote>
+<blockquote>
+<p>Windows 下可以用带 GUI 的 git 下载代码。</p>
+</blockquote>
+<p><strong>更新代码（在 awtk 目录下运行）</strong></p>
+<pre class="hljs"><code><div>git pull
+</div></code></pre>
+<blockquote>
+<p>用 git 下载代码的好处是以后更新代码非常快。</p>
+</blockquote>
+<ul>
+<li>直接下载 zip 文件</li>
+</ul>
+<blockquote>
+<p>下载 <a href="https://github.com/zlgopen/awtk/archive/master.zip"> zip 文件</a>。解压之后<strong>需要把文件夹改名为 awtk</strong>。</p>
+</blockquote>
+<h3 id="mac">Mac</h3>
+<p>如果没有安装 nodejs, scons 和 sdl2，请在终端运行下面的命令 （假定已安装 brew)：</p>
+<pre class="hljs"><code><div>brew install scons sdl2 node
+</div></code></pre>
+<p>编译运行 （在终端下，进入 awtk 所在的目录，并运行下列命令）：</p>
+<pre class="hljs"><code><div>scons
+./bin/demoui
+</div></code></pre>
+<h3 id="ubuntu-%EF%BC%88%E7%89%88%E6%9C%AC-16">Ubuntu （版本 &gt;=16)</h3>
+<p>如果没有安装 scons 和依赖的软件包，请在终端运行下面的命令：</p>
+<pre class="hljs"><code><div>sudo apt-get install gcc g++ scons libsndio-dev libgtk-3-dev libglu1-mesa libglu1-mesa-dev libgl1-mesa-glx libgl1-mesa-dev libasound2-dev libibus-1.0-dev fcitx-libs-dev git vim clang-format libharfbuzz-dev nodejs
+</div></code></pre>
+<p>编译运行 （在终端下，进入 awtk 所在的目录，并运行下列命令）：</p>
+<pre class="hljs"><code><div>scons
+./bin/demoui
+</div></code></pre>
+<blockquote>
+<p>在 Ubuntu 14 上无法启动，请参考 <a href="docs/faq.md">FAQ</a> 修改。</p>
+</blockquote>
+<h3 id="windows">Windows</h3>
+<blockquote>
+<p>请先安装 python(64 位系统要安装 64 位版本的 python)，scons 和 Visual Studio C++（版本 &gt;=2017)</p>
+</blockquote>
+<blockquote>
+<p>如果没有安装 pywin32，请 pip 安装：</p>
+</blockquote>
+<pre class="hljs"><code><div>pip install pywin32
+</div></code></pre>
+<p>如果没有安装nodejs，请到 <a href="https://nodejs.org/en/">nodejs</a>下载并安装。</p>
+<p>编译运行 （在命令行模式下，进入 awtk 所在的目录，并运行下列命令）：</p>
+<pre class="hljs"><code><div>scons
+bin\demoui
+</div></code></pre>
+<h3 id="%E6%89%80%E6%9C%89%E5%B9%B3%E5%8F%B0">所有平台</h3>
+<ul>
+<li>如果 PIL 没有安装，请用 pip 安装：</li>
+</ul>
+<pre class="hljs"><code><div>pip install Pillow
+</div></code></pre>
+<ul>
+<li>如果 glob 没有安装，请用 npm 安装：</li>
+</ul>
+<pre class="hljs"><code><div>npm install -g glob
+</div></code></pre>
+<h2 id="%E4%BA%94%E3%80%81%E5%9C%A8%E7%BA%BF%E6%BC%94%E7%A4%BA">五、在线演示</h2>
+<ul>
+<li>
+<p><a href="http://zlgawtk.bceapp.com/awtk/demos/demoui/index.html">基本控件在线演示</a></p>
+</li>
+<li>
+<p><a href="http://zlgawtk.bceapp.com/awtk/demos/Chart-Demo/index.html">图表演示</a></p>
+</li>
+<li>
+<p><a href="http://zlgawtk.bceapp.com/awtk/demos/MusicPlayer-Demo/index.html">音乐播放器演示</a></p>
+</li>
+<li>
+<p><a href="http://zlgawtk.bceapp.com/awtk/demos/SmartWatch-Demo/index.html">智能手表演示</a></p>
+</li>
+</ul>
+<h2 id="%E5%85%AD%E3%80%81%E5%90%84%E4%B8%AA%E5%B9%B3%E5%8F%B0%E7%9A%84%E7%A7%BB%E6%A4%8D">六、各个平台的移植</h2>
+<ul>
+<li><a href="docs/awtk_ecology.md">详见 AWTK 生态共建计划</a></li>
+</ul>
+<h2 id="%E4%B8%83%E3%80%81%E5%90%84%E8%AF%AD%E8%A8%80%E7%9A%84%E7%BB%91%E5%AE%9A">七、各语言的绑定</h2>
+<ul>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-binding">AWTK 绑定代码生成器</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-lua">LUA 绑定</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-cpp">C++ 绑定</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-java">JAVA 绑定</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-python">Python 绑定</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-minijvm">MiniJVM 绑定</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-quickjs">JS 绑定之 QuickJS</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-nodejs">JS 绑定之 NodeJS</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-jerryscript">JS 绑定之 JerryScript</a></p>
+</li>
+</ul>
+<h2 id="%E5%85%AB%E3%80%81%E7%9B%B8%E5%85%B3%E5%B7%A5%E7%A8%8B">八、相关工程</h2>
+<ul>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-hello">模板工程</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-mvvm-c-hello">MVVM 模板工程</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-csv-file">CSV文件操作</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-database-repository">数据库Repository</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-sqlite3">Sqlite 基于 AWTK 的移植</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-vscode-plugin">VSCode实时预览插件</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-restful-httpd">为嵌入式平台开发的RESTful的Web服务</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-ui-automation">自动测试引擎</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-c-demos">C 示例代码</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-examples">精彩示例</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-mvvm">AWTK-MVVM</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-patterns">MVC/MVVM 演示示例</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-widget-generator">扩展控件实例：控件代码生成器</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-widget-qr">扩展控件实例：二维码</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-widget-glview">扩展控件实例：TinyGL</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-widget-number-label">扩展控件实例：number-label</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-widget-code-edit">扩展控件实例：代码编辑器</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-widget-date-picker">扩展控件实例：日期选择器</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-widget-table-view">扩展控件实例：表格视图</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-widget-vlabel">扩展控件实例：垂直文本</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-widget-slidable-row">扩展控件实例：仿微信列表项</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-custom-font-loader">自定义字体加载器：加载部分字体</a></p>
+</li>
+</ul>
+<p>第三方提供：</p>
+<ul>
+<li>
+<p><a href="https://github.com/wenyufei2018/react-awtk">react-awtk</a></p>
+</li>
+<li>
+<p><a href="https://github.com/CUITzhaoqi/awtk-qr">扩展控件实例：二维码</a></p>
+</li>
+<li>
+<p><a href="https://github.com/longyuwlz/awtk_slider_circle">扩展控件实例：圆形滑块</a></p>
+</li>
+</ul>
+<h2 id="%E4%B9%9D%E3%80%81%E6%96%87%E6%A1%A3">九、文档</h2>
+<ul>
+<li>
+<p><a href="docs/README.md">开发文档</a></p>
+</li>
+<li>
+<p><a href="docs/changes.md">最新动态</a></p>
+</li>
+<li>
+<p><a href="TODO.md">任务完成情况</a></p>
+</li>
+<li>
+<p><a href="https://github.com/zlgopen/awtk-docs">入门指南与手册</a></p>
+</li>
+</ul>
+<h2 id="%E5%8D%81%E3%80%81%E7%94%9F%E6%80%81%E5%85%B1%E5%BB%BA%E8%AE%A1%E5%88%92">十、生态共建计划</h2>
+<ul>
+<li><a href="docs/awtk_ecology.md">生态共建计划</a></li>
+<li>深度合作伙伴</li>
+</ul>
+<p><a href="https://www.nxp.com"><img src="images/npx.png" alt=""></a>　<a href="http://www.anyka.com"><img src="images/logo_anyka.jpg" alt=""></a>　<a href="http://www.ingenic.com.cn"><img src="images/logo_ingenic.jpg" alt=""></a>　<a href="http://www.mindmotion.com.cn"><img src="images/logo_mindmotion.png" alt=""></a></p>
+
+<center><a href="index.html">返回主页</a></center>
+
+</body>
+</html>

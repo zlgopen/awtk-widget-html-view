@@ -1,0 +1,7 @@
+<window theme="html view" >
+  <html_view x="50" y="50" w="-100" h="-120" >
+    <html w="-12" h="100%" url="file://./data/index.html" />
+    <scroll_bar_m name="bar" x="right" y="0" w="6" h="100%" value="0"/>
+  </html_view>
+  <button x="c" y="bottom:10" w="50%" h="40" text="Back" on:click="back()"/>
+</window>

@@ -1,0 +1,6 @@
+<window theme="main" >
+  <button x="c" y="middle:-80" w="50%" h="30" text="HTML" on:click="open(html)"/>
+  <button x="c" y="middle:-40" w="50%" h="30" text="HTML View 1" on:click="open(html_view1)"/>
+  <button x="c" y="middle" w="50%" h="30" text="HTML View 2" on:click="open(html_view2)"/>
+  <button x="c" y="middle:40" w="50%" h="30" text="Quit" on:click="quit()"/>
+</window>

@@ -1,0 +1,51 @@
+<window theme="html" >
+  <html w="40%" h="80%" yslidable="false">
+   <property name="text">
+      <![CDATA[
+<!DOCTYPE html>
+<html>
+<body>
+
+<h2>An Unordered HTML List</h2>
+
+<ul>
+  <li>Coffee</li>
+  <li>Tea</li>
+  <li>Milk</li>
+</ul>  
+
+<h2>An Ordered HTML List</h2>
+
+<ol>
+  <li>Coffee</li>
+  <li>Tea</li>
+  <li>Milk</li>
+</ol> 
+<image src="logo" />
+</body>
+</html>
+      ]]>
+   </property>
+  </html>
+  
+  <html x="50%" w="40%" h="80%" yslidable="false">
+   <property name="text">
+      <![CDATA[
+<!DOCTYPE html>
+<html>
+<body>
+
+<p>I am normal</p>
+<p style="color:red;">I am red</p>
+<p style="color:blue;">I am blue</p>
+<p style="font-size:50px;">I am big</p>
+<image src="logo" />
+
+</body>
+</html>
+      ]]>
+   </property>
+  </html>
+
+  <button x="c" y="bottom:10" w="50%" h="40" text="Back" on:click="back()"/>
+</window>
