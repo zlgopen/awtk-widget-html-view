@@ -520,9 +520,9 @@ TK_DECL_VTABLE(html) = {.size = sizeof(html_t),
                         .persistent_properties = s_html_properties,
                         .parent = TK_PARENT_VTABLE(widget),
                         .create = html_create,
-                        .on_paint_self = html_on_paint_self,
-                        .set_prop = html_set_prop,
                         .get_prop = html_get_prop,
+                        .set_prop = html_set_prop,
+                        .on_paint_self = html_on_paint_self,
                         .on_event = html_on_event,
                         .on_destroy = html_on_destroy};
 
