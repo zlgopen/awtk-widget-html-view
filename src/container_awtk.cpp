@@ -169,7 +169,7 @@ litehtml::uint_ptr container_awtk::create_font(const litehtml::tchar_t* faceName
   bool_t under_line = (decoration & litehtml::font_decoration_underline) ? TRUE : FALSE;
 
   html_font_t* font = html_font_create(faceName, size, weight, aitalic, line_through, under_line);
-  return_value_if_fail(font != NULL, NULL);
+  return_value_if_fail(font != NULL, (litehtml::uint_ptr)NULL);
 
   if (fm) {
     float_t ascent = 0;

@@ -53,8 +53,13 @@ void gumbo_parser_deallocate(struct GumboInternalParser* parser, void* ptr);
 // required.
 void gumbo_debug(const char* format, ...);
 
+#ifdef WIN32
+#include <windows.h>
 #define strcasecmp stricmp
 #define strncasecmp strnicmp
+#else
+#include <strings.h>
+#endif/*WIN32*/
 
 #ifdef __cplusplus
 }

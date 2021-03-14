@@ -41,6 +41,10 @@ struct _html_impl_t {
 
   litehtml::document::ptr doc;
   litehtml::context* doc_context;
+
+  ~_html_impl_t() {
+    log_debug("~_html_impl_t\n");
+  }
 };
 
 static const char s_master_css[] = {
@@ -87,14 +91,8 @@ ret_t html_load(widget_t* widget) {
   }
 
   if (impl->doc != NULL) {
-    int32_t rw = 0;
-    int32_t rh = 0;
     litehtml::document::ptr doc = impl->doc;
-
     doc->render(widget->w);
-
-    rw = doc->width();
-    rh = doc->height();
     widget_set_prop_int(widget, WIDGET_PROP_YOFFSET, 0);
   }
 
@@ -105,7 +103,7 @@ static ret_t html_on_size_changed(widget_t* widget) {
   html_t* html = HTML(widget);
   html_impl_t* impl = html->impl;
   litehtml::document::ptr doc = impl->doc;
-  uint32_t w = widget->w - 2 * html_get_margin(widget);
+  int32_t w = widget->w - 2 * html_get_margin(widget);
 
   if (doc != NULL && w != doc->width()) {
     doc->media_changed();
@@ -156,6 +154,14 @@ static ret_t html_get_prop(widget_t* widget, const char* name, value_t* v) {
   return RET_NOT_FOUND;
 }
 
+static ret_t idle_load_page(const idle_info_t* info) {
+  widget_t* widget = WIDGET(info->ctx);
+  
+  html_load(widget);
+
+  return RET_REMOVE;
+}
+
 static ret_t html_set_prop(widget_t* widget, const char* name, const value_t* v) {
   html_t* html = HTML(widget);
   return_value_if_fail(widget != NULL && name != NULL && v != NULL, RET_BAD_PARAMS);
@@ -163,13 +169,13 @@ static ret_t html_set_prop(widget_t* widget, const char* name, const value_t* v)
   if (tk_str_eq(HTML_PROP_URL, name)) {
     html_set_url(widget, value_str(v));
     if (widget_is_window_opened(widget)) {
-      html_load(widget);
+      widget_add_idle(widget, idle_load_page);
     }
     return RET_OK;
   } else if (tk_str_eq(WIDGET_PROP_TEXT, name)) {
     wstr_from_value(&(widget->text), v);
     if (widget_is_window_opened(widget)) {
-      html_load(widget);
+      widget_add_idle(widget, idle_load_page);
     }
   } else if (tk_str_eq(WIDGET_PROP_YOFFSET, name)) {
     html->yoffset = value_int32(v);
@@ -368,7 +374,7 @@ static ret_t html_pagedown(widget_t* widget) {
   int32_t h = 0;
   int32_t pageh = 0;
   html_t* html = HTML(widget);
-  uint32_t row_height = html_get_row_height(widget);
+  int32_t row_height = html_get_row_height(widget);
   return_value_if_fail(html != NULL && widget != NULL, RET_BAD_PARAMS);
 
   h = widget->h - html_get_margin(widget) * 2 - 30;
@@ -381,7 +387,7 @@ static ret_t html_pageup(widget_t* widget) {
   int32_t h = 0;
   int32_t pageh = 0;
   html_t* html = HTML(widget);
-  uint32_t row_height = html_get_row_height(widget);
+  int32_t row_height = html_get_row_height(widget);
   return_value_if_fail(html != NULL && widget != NULL, RET_BAD_PARAMS);
 
   h = widget->h - html_get_margin(widget) * 2 - 30;
@@ -417,8 +423,8 @@ static bool_t html_is_scollable(widget_t* widget) {
   if (impl->doc == NULL) {
     return FALSE;
   } else {
-    uint32_t margin = html_get_margin(widget);
-    return (impl->doc->height() + 2 * margin) > widget->h;
+    int32_t margin = html_get_margin(widget);
+    return (impl->doc->height() + 2 * margin) > (int32_t)(widget->h);
   }
 }
 
@@ -507,9 +513,8 @@ static ret_t html_on_event(widget_t* widget, event_t* e) {
     default:
       break;
   }
-  (void)html;
 
-  return RET_OK;
+  return ret;
 }
 
 const char* s_html_properties[] = {HTML_PROP_URL, NULL};

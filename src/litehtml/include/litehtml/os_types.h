@@ -58,7 +58,6 @@ namespace litehtml
 	#endif
 
 #else
-	#define LITEHTML_UTF8
 
 	typedef std::string			tstring;
 	typedef char				tchar_t;
