@@ -11,7 +11,7 @@ SOURCES=Glob('html_view/*.cpp') + Glob('html_view/*.c') + \
   Glob('*.c') + Glob('*.cpp') + Glob('litehtml/src/*.cpp') + Glob('litehtml/src/gumbo/*.c')
 
 EXPORT_DEF=''
-if OS_NAME == 'Windows':
+if OS_NAME == 'Windows' and os.environ['TOOLS_NAME'] == '':
   EXPORT_DEF = ' /DEF:"src/html_view.def" '
 
 if 'BUILD_SHARED' in os.environ and os.environ['BUILD_SHARED'] == 'True':
