@@ -23,4 +23,4 @@ helper.add_cxxflags(APP_CXXFLAGS).add_cpppath(APP_CPPPATH)
 helper.set_dll_def('src/html_view.def').set_libs(['html_view']).call(DefaultEnvironment)
 
 SConscriptFiles = ['src/SConscript', 'demos/SConscript']
-SConscript(SConscriptFiles)
+helper.SConscript(SConscriptFiles)
