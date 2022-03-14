@@ -26,6 +26,7 @@
 #include "widget_animators/widget_animator_scroll.h"
 
 #include "html.h"
+#include "html_impl.h"
 #include "container_awtk.h"
 
 static bool_t html_is_scollable(widget_t* widget);
@@ -63,7 +64,7 @@ static uint32_t html_get_row_height(widget_t* widget) {
   return 40;
 }
 
-ret_t html_load(widget_t* widget) {
+static ret_t html_load(widget_t* widget) {
   uint32_t size = 0;
   char base_url[MAX_PATH + 1];
   html_t* html = HTML(widget);
@@ -113,16 +114,7 @@ static ret_t html_on_size_changed(widget_t* widget) {
   return RET_OK;
 }
 
-ret_t html_set_url(widget_t* widget, const char* url) {
-  html_t* html = HTML(widget);
-  return_value_if_fail(html != NULL, RET_BAD_PARAMS);
-
-  html->url = tk_str_copy(html->url, url);
-
-  return RET_OK;
-}
-
-static ret_t html_get_prop(widget_t* widget, const char* name, value_t* v) {
+ret_t html_get_prop(widget_t* widget, const char* name, value_t* v) {
   html_t* html = HTML(widget);
   html_impl_t* impl = html->impl;
   return_value_if_fail(html != NULL && name != NULL && v != NULL, RET_BAD_PARAMS);
@@ -162,7 +154,7 @@ static ret_t idle_load_page(const idle_info_t* info) {
   return RET_REMOVE;
 }
 
-static ret_t html_set_prop(widget_t* widget, const char* name, const value_t* v) {
+ret_t html_set_prop(widget_t* widget, const char* name, const value_t* v) {
   html_t* html = HTML(widget);
   return_value_if_fail(widget != NULL && name != NULL && v != NULL, RET_BAD_PARAMS);
 
@@ -194,7 +186,7 @@ static ret_t html_set_prop(widget_t* widget, const char* name, const value_t* v)
   return RET_NOT_FOUND;
 }
 
-static ret_t html_on_destroy(widget_t* widget) {
+ret_t html_on_destroy(widget_t* widget) {
   html_t* html = HTML(widget);
   return_value_if_fail(widget != NULL && html != NULL, RET_BAD_PARAMS);
 
@@ -204,7 +196,7 @@ static ret_t html_on_destroy(widget_t* widget) {
   return RET_OK;
 }
 
-static ret_t html_on_paint_self(widget_t* widget, canvas_t* c) {
+ret_t html_on_paint_self(widget_t* widget, canvas_t* c) {
   rect_t r;
   rect_t r_save;
   html_t* html = HTML(widget);
@@ -258,7 +250,7 @@ static ret_t html_on_scroll_done(void* ctx, event_t* e) {
   return RET_REMOVE;
 }
 
-ret_t html_scroll_to(widget_t* widget, int32_t yoffset_end) {
+static ret_t html_scroll_to(widget_t* widget, int32_t yoffset_end) {
   int32_t yoffset = 0;
   int32_t virtual_h = 0;
   html_t* html = HTML(widget);
@@ -306,7 +298,7 @@ ret_t html_scroll_to(widget_t* widget, int32_t yoffset_end) {
   return RET_OK;
 }
 
-ret_t html_scroll_delta_to(widget_t* widget, int32_t yoffset_delta) {
+static ret_t html_scroll_delta_to(widget_t* widget, int32_t yoffset_delta) {
   html_t* html = HTML(widget);
   return_value_if_fail(html != NULL, RET_FAIL);
 
@@ -428,7 +420,7 @@ static bool_t html_is_scollable(widget_t* widget) {
   }
 }
 
-static ret_t html_on_event(widget_t* widget, event_t* e) {
+ret_t html_on_event(widget_t* widget, event_t* e) {
   ret_t ret = RET_OK;
   html_t* html = HTML(widget);
   html_impl_t* impl = html->impl;
@@ -517,44 +509,11 @@ static ret_t html_on_event(widget_t* widget, event_t* e) {
   return ret;
 }
 
-const char* s_html_properties[] = {HTML_PROP_URL, NULL};
-
-TK_DECL_VTABLE(html) = {.size = sizeof(html_t),
-                        .type = WIDGET_TYPE_HTML,
-                        .clone_properties = s_html_properties,
-                        .persistent_properties = s_html_properties,
-                        .parent = TK_PARENT_VTABLE(widget),
-                        .create = html_create,
-                        .get_prop = html_get_prop,
-                        .set_prop = html_set_prop,
-                        .on_paint_self = html_on_paint_self,
-                        .on_event = html_on_event,
-                        .on_destroy = html_on_destroy};
-
-widget_t* html_create(widget_t* parent, xy_t x, xy_t y, wh_t w, wh_t h) {
-  widget_t* widget = widget_create(parent, TK_REF_VTABLE(html), x, y, w, h);
-  html_t* html = HTML(widget);
-  return_value_if_fail(html != NULL, NULL);
-
-  html->yslidable = TRUE;
-  html->impl = new html_impl_t();
-  html->impl->html_context.load_master_stylesheet(s_master_css);
-  html->impl->container.set_view(widget);
-
-  return widget;
-}
-
-ret_t html_set_yslidable(widget_t* widget, bool_t yslidable) {
-  html_t* html = HTML(widget);
-  return_value_if_fail(html != NULL, RET_FAIL);
-
-  html->yslidable = yslidable;
-
-  return RET_OK;
-}
-
-widget_t* html_cast(widget_t* widget) {
-  return_value_if_fail(WIDGET_IS_INSTANCE_OF(widget, html), NULL);
-
-  return widget;
+html_impl_t* html_impl_create(widget_t* widget) {
+  html_impl_t* impl = new html_impl_t();
+  if (impl != NULL) {
+    impl->html_context.load_master_stylesheet(s_master_css);
+    impl->container.set_view(widget);  
+  }
+  return impl;
 }
