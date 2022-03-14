@@ -24,11 +24,21 @@
 
 const char* s_html_properties[] = {HTML_PROP_URL, NULL};
 
+static ret_t html_get_offset(widget_t* widget, xy_t* out_x, xy_t* out_y) {
+  html_t* html = HTML(widget);
+  return_value_if_fail(html != NULL && out_x != NULL && out_y != NULL, RET_BAD_PARAMS);
+  *out_x = 0;
+  *out_y = html->yoffset;
+
+  return RET_OK;
+}
+
 TK_DECL_VTABLE(html) = {.size = sizeof(html_t),
                         .type = WIDGET_TYPE_HTML,
                         .clone_properties = s_html_properties,
                         .persistent_properties = s_html_properties,
                         .parent = TK_PARENT_VTABLE(widget),
+                        .get_offset = html_get_offset,
                         .create = html_create,
                         .get_prop = html_get_prop,
                         .set_prop = html_set_prop,

@@ -483,7 +483,6 @@ ret_t html_on_event(widget_t* widget, event_t* e) {
         point_t p = {evt->x, evt->y};
         widget_to_local(widget, &p);
 
-        p.y += html->yoffset;
         impl->doc->on_lbutton_down(p.x, p.y, evt->x, evt->y, v);
         impl->doc->on_lbutton_up(p.x, p.y, evt->x, evt->y, v);
       }
