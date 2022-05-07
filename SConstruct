@@ -18,7 +18,7 @@ APP_CXXFLAGS=' -DLITEHTML_UTF8=1 '
 if platform.system() == 'Windows':
   APP_CXXFLAGS += ' /std:c++latest '
 else:
-  APP_CXXFLAGS += ' -std=c++17 '
+  APP_CXXFLAGS += ' -std=c++11 '
 helper.add_cxxflags(APP_CXXFLAGS).add_cpppath(APP_CPPPATH)
 helper.set_dll_def('src/html_view.def').set_libs(['html_view']).call(DefaultEnvironment)
 
