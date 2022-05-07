@@ -337,9 +337,7 @@ void container_awtk::draw_background(litehtml::uint_ptr hdc, const litehtml::bac
     if (awtk_load_image(this->view, src, m_base_url.c_str(), &img) == RET_OK) {
       switch (bg.repeat) {
         case litehtml::background_repeat_no_repeat:
-          canvas_translate(c, -ox, -oy);
-          canvas_draw_image_ex(c, &img, IMAGE_DRAW_ICON, &r);
-          canvas_translate(c, ox, oy);
+          vgcanvas_draw_image(vg, &img, 0, 0, img.w, img.h, r.x, r.y, r.w, r.h);
           break;
 
         case litehtml::background_repeat_repeat_x:
