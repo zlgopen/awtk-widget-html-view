@@ -15,7 +15,7 @@ APP_CPPPATH=[
   os.path.join(APP_ROOT, "src/litehtml/include/litehtml")
 ]
 APP_CXXFLAGS=' -DLITEHTML_UTF8=1 '
-if platform.system() == 'Windows':
+if platform.system() == 'Windows' and not helper.awtk.TOOLS_NAME == 'mingw':
   APP_CXXFLAGS += ' /std:c++latest '
 else:
   APP_CXXFLAGS += ' -std=c++11 '
