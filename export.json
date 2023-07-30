@@ -1,0 +1,21 @@
+{
+  "cflags":["-DLITEHTML_UTF8=1"],
+  "cxxflags":[""],
+  "includes":[
+    "src",
+    "src/litehtml",
+    "src/litehtml/src",
+    "src/litehtml/include",
+    "src/litehtml/src/gumbo/include",
+    "src/litehtml/src/gumbo/include/gumbo",
+    "src/litehtml/include/litehtml"
+  ],
+  "sources":[
+    "src/*.c",
+    "src/*.cpp",
+    "src/litehtml/src/*.cpp", 
+    "src/litehtml/src/gumbo/*.c",
+    "src/html_view/*.cpp",
+    "src/html_view/*.c"
+  ]
+}
