@@ -220,19 +220,16 @@ ret_t html_on_paint_self(widget_t* widget, canvas_t* c) {
 
   if (impl->doc != NULL) {
     litehtml::position pos;
-    vgcanvas_t* vg = canvas_get_vgcanvas(c);
 
     pos.x = 0;
     pos.y = yoffset;
     pos.width = widget->w;
     pos.height = widget->h;
 
-    vgcanvas_save(vg);
-    vgcanvas_translate(vg, c->ox, c->oy - yoffset);
+    canvas_translate(c, 0, -yoffset);
     impl->container.set_clip_rect(pos);
     impl->doc->draw((litehtml::uint_ptr)c, 0, 0, &pos);
-    vgcanvas_translate(vg, -c->ox, -c->oy);
-    vgcanvas_restore(vg);
+    canvas_translate(c, 0, yoffset);
   }
   canvas_set_clip_rect(c, &r_save);
   //log_debug("html paint cost: %d us\n", (int)(time_now_us()-start));

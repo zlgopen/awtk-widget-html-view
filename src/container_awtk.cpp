@@ -231,9 +231,7 @@ void container_awtk::draw_text(litehtml::uint_ptr hdc, const litehtml::tchar_t* 
   canvas_set_text_color(c, color_from_web_color(color));
   canvas_set_text_align(c, ALIGN_H_LEFT, ALIGN_V_MIDDLE);
 
-  canvas_translate(c, -ox, -oy);
   canvas_draw_utf8_in_rect(c, text, &r);
-  canvas_translate(c, ox, oy);
 }
 
 int container_awtk::pt_to_px(int pt) {
@@ -263,11 +261,11 @@ void container_awtk::draw_list_marker(litehtml::uint_ptr hdc, const litehtml::li
       int32_t oy = c->oy;
       rect_t r = rect_from_position(marker.pos);
 
-      canvas_translate(c, -ox, -oy);
       canvas_draw_image_ex(c, &img, IMAGE_DRAW_ICON, &r);
-      canvas_translate(c, ox, oy);
     }
   } else {
+    vgcanvas_save(vg);
+    vgcanvas_translate(vg, c->ox, c->oy);
     switch (marker.marker_type) {
       case litehtml::list_style_type_circle: {
         vgcanvas_ellipse(vg, marker.pos.x, marker.pos.y, marker.pos.width, marker.pos.height);
@@ -292,6 +290,7 @@ void container_awtk::draw_list_marker(litehtml::uint_ptr hdc, const litehtml::li
       default:
         break;
     }
+    vgcanvas_restore(vg);
   }
 }
 
@@ -322,12 +321,15 @@ void container_awtk::draw_background(litehtml::uint_ptr hdc, const litehtml::bac
   }
 
   vgcanvas_save(vg);
+  vgcanvas_translate(vg, c->ox, c->oy);
 
   if (bg.color.alpha) {
     vgcanvas_rounded_rect_ex(vg, bg.border_box, bg.border_radius);
     vgcanvas_apply_fill_color(vg, bg.color);
     vgcanvas_fill(vg);
   }
+
+  vgcanvas_restore(vg);
 
   if (bg.image.size() > 0) {
     bitmap_t img;
@@ -337,32 +339,25 @@ void container_awtk::draw_background(litehtml::uint_ptr hdc, const litehtml::bac
     if (awtk_load_image(this->view, src, m_base_url.c_str(), &img) == RET_OK) {
       switch (bg.repeat) {
         case litehtml::background_repeat_no_repeat:
-          vgcanvas_draw_image(vg, &img, 0, 0, img.w, img.h, r.x, r.y, r.w, r.h);
+          canvas_draw_image_ex(c, &img, IMAGE_DRAW_SCALE, &r);
           break;
 
         case litehtml::background_repeat_repeat_x:
-          canvas_translate(c, -ox, -oy);
           canvas_draw_image_ex(c, &img, IMAGE_DRAW_REPEAT_X, &r);
-          canvas_translate(c, ox, oy);
           break;
 
         case litehtml::background_repeat_repeat_y:
-          canvas_translate(c, -ox, -oy);
           canvas_draw_image_ex(c, &img, IMAGE_DRAW_REPEAT_Y, &r);
-          canvas_translate(c, ox, oy);
           break;
 
         case litehtml::background_repeat_repeat:
-          canvas_translate(c, -ox, -oy);
           canvas_draw_image_ex(c, &img, IMAGE_DRAW_REPEAT, &r);
-          canvas_translate(c, ox, oy);
           break;
         default:
           break;
       }
     }
   }
-  vgcanvas_restore(vg);
 }
 
 
@@ -380,6 +375,7 @@ void container_awtk::draw_borders(litehtml::uint_ptr hdc, const litehtml::border
   canvas_t* c = (canvas_t*)hdc;
   vgcanvas_t* vg = lcd_get_vgcanvas(c->lcd);
   vgcanvas_save(vg);
+  vgcanvas_translate(vg, c->ox, c->oy);
 
   this->apply_clip(vg);
 
