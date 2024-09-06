@@ -15,7 +15,7 @@ if OS_NAME == 'Windows' and os.environ['TOOLS_NAME'] == '':
   EXPORT_DEF = ' /DEF:"src/html_view.def" '
 
 if 'BUILD_SHARED' in os.environ and os.environ['BUILD_SHARED'] == 'True':
-  LIBS=['awtk'];
+  LIBS=['awtk', 'litehtml'];
   LINKFLAGS=env['LINKFLAGS'] + EXPORT_DEF 
   env.SharedLibrary(os.path.join(BIN_DIR, 'html_view'), SOURCES, LIBS=LIBS, LINKFLAGS=LINKFLAGS);
 else:

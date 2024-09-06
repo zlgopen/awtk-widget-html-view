@@ -1,5 +1,12 @@
-#include "awtk.h"
 #include "container_awtk.h"
+
+#define _t(str) str
+
+container_awtk::container_awtk() {
+}
+
+container_awtk::~container_awtk() {
+}
 
 typedef struct _html_font_t {
   char* name;
@@ -13,8 +20,142 @@ typedef struct _html_font_t {
   int descent;
 } html_font_t;
 
-static void my_make_url(const litehtml::tchar_t* url, const litehtml::tchar_t* basepath,
-                              litehtml::tstring& out) {
+static html_font_t* html_font_create(const char* name, int size, int weight, bool_t italic,
+                                     bool_t line_through, bool_t under_line) {
+  html_font_t* font = TKMEM_ZALLOC(html_font_t);
+  return_value_if_fail(font != NULL, NULL);
+  font->name = tk_strdup(name);
+  font->size = size;
+  font->weight = weight;
+  font->italic = italic;
+  font->under_line = under_line;
+  font->line_through = line_through;
+
+  return font;
+}
+
+static ret_t html_font_destroy(html_font_t* font) {
+  return_value_if_fail(font != NULL, RET_BAD_PARAMS);
+  TKMEM_FREE(font->name);
+  TKMEM_FREE(font);
+
+  return RET_OK;
+}
+
+static ret_t canvas_apply_font(canvas_t* c, html_font_t* font) {
+  return_value_if_fail(c != NULL && font != NULL, RET_BAD_PARAMS);
+
+  if (tk_str_eq(c->font_name, font->name) && c->font_size == font->size) {
+    return RET_OK;
+  }
+
+  canvas_set_font(c, font->name, font->size);
+
+  return RET_OK;
+}
+
+uint_ptr container_awtk::create_font(const char* faceName, int size, int weight, font_style italic,
+                                     unsigned int decoration, font_metrics* fm) {
+  bool_t aitalic = (italic == litehtml::font_style_italic) ? TRUE : FALSE;
+  bool_t line_through = (decoration & litehtml::font_decoration_linethrough) ? TRUE : FALSE;
+  bool_t under_line = (decoration & litehtml::font_decoration_underline) ? TRUE : FALSE;
+
+  html_font_t* font = html_font_create(faceName, size, weight, aitalic, line_through, under_line);
+  return_value_if_fail(font != NULL, (litehtml::uint_ptr)NULL);
+
+  if (fm) {
+    float_t ascent = 0;
+    float_t descent = 0;
+    float_t height = 0;
+
+    canvas_t* c = widget_get_canvas(this->view);
+
+    canvas_apply_font(c, font);
+    canvas_get_text_metrics(c, &ascent, &descent, &height);
+
+    descent = tk_abs(descent);
+
+    fm->ascent = ascent;
+    fm->descent = descent;
+    fm->height = height;
+    fm->x_height = 3;
+
+    font->ascent = ascent;
+    font->descent = descent;
+
+    if (italic == litehtml::font_style_italic || decoration) {
+      fm->draw_spaces = true;
+    } else {
+      fm->draw_spaces = false;
+    }
+  }
+
+  return (litehtml::uint_ptr)font;
+}
+
+void container_awtk::delete_font(litehtml::uint_ptr hFont) {
+  html_font_t* font = (html_font_t*)hFont;
+  html_font_destroy(font);
+}
+
+int container_awtk::text_width(const char* text, litehtml::uint_ptr hFont) {
+  canvas_t* c = widget_get_canvas(this->view);
+  html_font_t* font = (html_font_t*)hFont;
+
+  canvas_apply_font(c, font);
+  return canvas_measure_utf8(c, text);
+}
+
+static color_t color_from_web_color(const litehtml::web_color& color) {
+  return color_init(color.red, color.green, color.blue, color.alpha);
+}
+
+static rect_t rect_from_position(const litehtml::position& pos) {
+  return rect_init(pos.x, pos.y, pos.width, pos.height);
+}
+
+static ret_t vgcanvas_apply_fill_color(vgcanvas_t* vg, litehtml::web_color color) {
+  vgcanvas_set_fill_color(vg, color_from_web_color(color));
+
+  return RET_OK;
+}
+
+static ret_t vgcanvas_apply_stroke_color(vgcanvas_t* vg, litehtml::web_color color) {
+  vgcanvas_set_stroke_color(vg, color_from_web_color(color));
+
+  return RET_OK;
+}
+
+void container_awtk::draw_text(litehtml::uint_ptr hdc, const char* text, litehtml::uint_ptr hFont,
+                               litehtml::web_color color, const litehtml::position& pos) {
+  canvas_t* c = (canvas_t*)hdc;
+  html_font_t* font = (html_font_t*)hFont;
+  rect_t r = rect_from_position(pos);
+
+  if (!this->is_in_clip_rect(pos)) {
+    return;
+  }
+
+  canvas_apply_font(c, font);
+  canvas_set_text_color(c, color_from_web_color(color));
+  canvas_set_text_align(c, ALIGN_H_LEFT, ALIGN_V_MIDDLE);
+
+  canvas_draw_utf8_in_rect(c, text, &r);
+}
+
+int container_awtk::pt_to_px(int pt) const {
+  return (int)((double)pt * 96 / 72.0);
+}
+
+int container_awtk::get_default_font_size() const {
+  return TK_DEFAULT_FONT_SIZE;
+}
+
+const char* container_awtk::get_default_font_name() const {
+  return _t(system_info()->default_font);
+}
+
+static void my_make_url(const char* url, const char* basepath, litehtml::string& out) {
   if (url != NULL) {
     const char* path = strstr(url, "://");
 
@@ -39,10 +180,9 @@ static void my_make_url(const litehtml::tchar_t* url, const litehtml::tchar_t* b
   }
 }
 
-static ret_t awtk_load_image(widget_t* view, const litehtml::tchar_t* src,
-                             const litehtml::tchar_t* baseurl, bitmap_t* img) {
-  if(strchr(src, '.') != NULL) {
-    litehtml::tstring abs_url;
+static ret_t awtk_load_image(widget_t* view, const char* src, const char* baseurl, bitmap_t* img) {
+  if (strchr(src, '.') != NULL) {
+    litehtml::string abs_url;
     my_make_url(src, baseurl, abs_url);
     return widget_load_image(view, abs_url.c_str(), img);
   } else {
@@ -50,26 +190,50 @@ static ret_t awtk_load_image(widget_t* view, const litehtml::tchar_t* src,
   }
 }
 
-static html_font_t* html_font_create(const char* name, int size, int weight, bool_t italic,
-                                     bool_t line_through, bool_t under_line) {
-  html_font_t* font = TKMEM_ZALLOC(html_font_t);
-  return_value_if_fail(font != NULL, NULL);
-  font->name = tk_strdup(name);
-  font->size = size;
-  font->weight = weight;
-  font->italic = italic;
-  font->under_line = under_line;
-  font->line_through = line_through;
-
-  return font;
+void container_awtk::load_image(const char* src, const char* baseurl, bool redraw_on_ready) {
+  bitmap_t img;
+  awtk_load_image(this->view, src, m_base_url.c_str(), &img);
 }
 
-static ret_t html_font_destroy(html_font_t* font) {
-  return_value_if_fail(font != NULL, RET_BAD_PARAMS);
-  TKMEM_FREE(font->name);
-  TKMEM_FREE(font);
+void container_awtk::get_image_size(const char* src, const char* baseurl, litehtml::size& sz) {
+  bitmap_t img;
+  if (awtk_load_image(this->view, src, m_base_url.c_str(), &img) == RET_OK) {
+    float_t ratio = system_info()->device_pixel_ratio;
+    sz.width = img.w / ratio;
+    sz.height = img.h / ratio;
+  }
+}
 
-  return RET_OK;
+void container_awtk::draw_image(uint_ptr hdc, const background_layer& layer, const string& url,
+                                const string& base_url) {
+  bitmap_t img;
+  rect_t r = rect_init(layer.border_box.x, layer.border_box.y, layer.border_box.width, layer.border_box.height);
+  ret_t ret = awtk_load_image(this->view, url.c_str(), m_base_url.c_str(), &img);
+  return_if_fail(ret == RET_OK);
+  
+  canvas_t* c = (canvas_t*)hdc;
+  canvas_draw_image_ex(c, &img, IMAGE_DRAW_SCALE, &r);
+}
+
+void container_awtk::draw_solid_fill(uint_ptr hdc, const background_layer& layer,
+                                     const web_color& color) {
+  rect_t r = rect_init(layer.border_box.x, layer.border_box.y, layer.border_box.width, layer.border_box.height);
+  canvas_t* c = (canvas_t*)hdc;
+  
+  canvas_set_fill_color(c, color_from_web_color(color));
+  canvas_fill_rect(c, r.x, r.y, r.w, r.h);
+}
+
+void container_awtk::draw_linear_gradient(uint_ptr hdc, const background_layer& layer,
+                                          const background_layer::linear_gradient& gradient) {
+}
+
+void container_awtk::draw_radial_gradient(uint_ptr hdc, const background_layer& layer,
+                                          const background_layer::radial_gradient& gradient) {
+}
+
+void container_awtk::draw_conic_gradient(uint_ptr hdc, const background_layer& layer,
+                                         const background_layer::conic_gradient& gradient) {
 }
 
 static bool vgcanvas_add_arc(vgcanvas_t* vg, double x, double y, double rx, double ry, double a1,
@@ -122,250 +286,6 @@ static ret_t vgcanvas_rounded_rect_ex(vgcanvas_t* vg, const litehtml::position& 
   return RET_OK;
 }
 
-static ret_t canvas_apply_font(canvas_t* c, html_font_t* font) {
-  return_value_if_fail(c != NULL && font != NULL, RET_BAD_PARAMS);
-  
-  if(tk_str_eq(c->font_name, font->name) && c->font_size ==  font->size) {
-    return RET_OK;
-  }
-
-  canvas_set_font(c, font->name, font->size);
-
-  return RET_OK;
-}
-
-static color_t color_from_web_color(const litehtml::web_color& color) {
-  return color_init(color.red, color.green, color.blue, color.alpha);
-}
-
-static rect_t rect_from_position(const litehtml::position& pos) {
-  return rect_init(pos.x, pos.y, pos.width, pos.height);
-}
-
-static ret_t vgcanvas_apply_fill_color(vgcanvas_t* vg, litehtml::web_color color) {
-  vgcanvas_set_fill_color(vg, color_from_web_color(color));
-
-  return RET_OK;
-}
-
-static ret_t vgcanvas_apply_stroke_color(vgcanvas_t* vg, litehtml::web_color color) {
-  vgcanvas_set_stroke_color(vg, color_from_web_color(color));
-
-  return RET_OK;
-}
-
-container_awtk::container_awtk() {
-}
-
-container_awtk::~container_awtk() {
-}
-
-litehtml::uint_ptr container_awtk::create_font(const litehtml::tchar_t* faceName, int size,
-                                               int weight, litehtml::font_style italic,
-                                               unsigned int decoration,
-                                               litehtml::font_metrics* fm) {
-  bool_t aitalic = (italic == litehtml::fontStyleItalic) ? TRUE : FALSE;
-  bool_t line_through = (decoration & litehtml::font_decoration_linethrough) ? TRUE : FALSE;
-  bool_t under_line = (decoration & litehtml::font_decoration_underline) ? TRUE : FALSE;
-
-  html_font_t* font = html_font_create(faceName, size, weight, aitalic, line_through, under_line);
-  return_value_if_fail(font != NULL, (litehtml::uint_ptr)NULL);
-
-  if (fm) {
-    float_t ascent = 0;
-    float_t descent = 0;
-    float_t height = 0;
-
-    canvas_t* c = widget_get_canvas(this->view);
-
-    canvas_apply_font(c, font);
-    canvas_get_text_metrics(c, &ascent, &descent, &height);
-
-    descent = tk_abs(descent);
-
-    fm->ascent = ascent;
-    fm->descent = descent;
-    fm->height = height;
-    fm->x_height = 3;
-
-    font->ascent = ascent;
-    font->descent = descent;
-
-    if (italic == litehtml::fontStyleItalic || decoration) {
-      fm->draw_spaces = true;
-    } else {
-      fm->draw_spaces = false;
-    }
-  }
-
-  return (litehtml::uint_ptr)font;
-}
-
-void container_awtk::delete_font(litehtml::uint_ptr hFont) {
-  html_font_t* font = (html_font_t*)hFont;
-  html_font_destroy(font);
-}
-
-int container_awtk::text_width(const litehtml::tchar_t* text, litehtml::uint_ptr hFont) {
-  canvas_t* c = widget_get_canvas(this->view);
-  html_font_t* font = (html_font_t*)hFont;
-
-  canvas_apply_font(c, font);
-  return canvas_measure_utf8(c, text);
-}
-
-void container_awtk::draw_text(litehtml::uint_ptr hdc, const litehtml::tchar_t* text,
-                               litehtml::uint_ptr hFont, litehtml::web_color color,
-                               const litehtml::position& pos) {
-  canvas_t* c = (canvas_t*)hdc;
-  int32_t ox = c->ox;
-  int32_t oy = c->oy;
-  html_font_t* font = (html_font_t*)hFont;
-  rect_t r = rect_from_position(pos);
-  
-  if(!this->is_in_clip_rect(pos)) {
-    return;
-  }
-
-  canvas_apply_font(c, font);
-  canvas_set_text_color(c, color_from_web_color(color));
-  canvas_set_text_align(c, ALIGN_H_LEFT, ALIGN_V_MIDDLE);
-
-  canvas_draw_utf8_in_rect(c, text, &r);
-}
-
-int container_awtk::pt_to_px(int pt) {
-  return (int)((double)pt * 96 / 72.0);
-}
-
-int container_awtk::get_default_font_size() const {
-  return TK_DEFAULT_FONT_SIZE;
-}
-
-const litehtml::tchar_t* container_awtk::get_default_font_name() const {
-  return _t(system_info()->default_font);
-}
-
-void container_awtk::draw_list_marker(litehtml::uint_ptr hdc, const litehtml::list_marker& marker) {
-  canvas_t* c = (canvas_t*)hdc;
-  vgcanvas_t* vg = lcd_get_vgcanvas(c->lcd);
-  
-  if(!this->is_in_clip_rect(marker.pos)) {
-    return;
-  }
-
-  if (!marker.image.empty()) {
-    bitmap_t img;
-    if (awtk_load_image(this->view, marker.image.c_str(), m_base_url.c_str(), &img) == RET_OK) {
-      int32_t ox = c->ox;
-      int32_t oy = c->oy;
-      rect_t r = rect_from_position(marker.pos);
-
-      canvas_draw_image_ex(c, &img, IMAGE_DRAW_ICON, &r);
-    }
-  } else {
-    vgcanvas_save(vg);
-    vgcanvas_translate(vg, c->ox, c->oy);
-    switch (marker.marker_type) {
-      case litehtml::list_style_type_circle: {
-        vgcanvas_ellipse(vg, marker.pos.x, marker.pos.y, marker.pos.width, marker.pos.height);
-        vgcanvas_apply_stroke_color(vg, marker.color);
-        vgcanvas_stroke(vg);
-        break;
-      }
-      case litehtml::list_style_type_disc: {
-        vgcanvas_ellipse(vg, marker.pos.x, marker.pos.y, marker.pos.width, marker.pos.height);
-        vgcanvas_apply_fill_color(vg, marker.color);
-        vgcanvas_fill(vg);
-        break;
-      }
-      case litehtml::list_style_type_square: {
-        if (hdc) {
-          vgcanvas_rect(vg, marker.pos.x, marker.pos.y, marker.pos.width, marker.pos.height);
-          vgcanvas_apply_fill_color(vg, marker.color);
-          vgcanvas_fill(vg);
-        }
-        break;
-      }
-      default:
-        break;
-    }
-    vgcanvas_restore(vg);
-  }
-}
-
-void container_awtk::load_image(const litehtml::tchar_t* src, const litehtml::tchar_t* baseurl,
-                                bool redraw_on_ready) {
-  bitmap_t img;
-  awtk_load_image(this->view, src, m_base_url.c_str(), &img);
-}
-
-void container_awtk::get_image_size(const litehtml::tchar_t* src, const litehtml::tchar_t* baseurl,
-                                    litehtml::size& sz) {
-  bitmap_t img;
-  if (awtk_load_image(this->view, src, m_base_url.c_str(), &img) == RET_OK) {
-    float_t ratio = system_info()->device_pixel_ratio;
-    sz.width = img.w / ratio;
-    sz.height = img.h / ratio;
-  }
-}
-
-void container_awtk::draw_background(litehtml::uint_ptr hdc, const litehtml::background_paint& bg) {
-  canvas_t* c = (canvas_t*)hdc;
-  vgcanvas_t* vg = lcd_get_vgcanvas(c->lcd);
-  int32_t ox = c->ox;
-  int32_t oy = c->oy;
-
-  if(!this->is_in_clip_rect(bg.border_box)) {
-    return;
-  }
-
-  vgcanvas_save(vg);
-  vgcanvas_translate(vg, c->ox, c->oy);
-
-  if (bg.color.alpha) {
-    vgcanvas_rounded_rect_ex(vg, bg.border_box, bg.border_radius);
-    vgcanvas_apply_fill_color(vg, bg.color);
-    vgcanvas_fill(vg);
-  }
-
-  vgcanvas_restore(vg);
-
-  if (bg.image.size() > 0) {
-    bitmap_t img;
-    const char* src = bg.image.c_str();
-    rect_t r = rect_from_position(bg.clip_box);
-
-    if (awtk_load_image(this->view, src, m_base_url.c_str(), &img) == RET_OK) {
-      switch (bg.repeat) {
-        case litehtml::background_repeat_no_repeat:
-          canvas_draw_image_ex(c, &img, IMAGE_DRAW_SCALE, &r);
-          break;
-
-        case litehtml::background_repeat_repeat_x:
-          canvas_draw_image_ex(c, &img, IMAGE_DRAW_REPEAT_X, &r);
-          break;
-
-        case litehtml::background_repeat_repeat_y:
-          canvas_draw_image_ex(c, &img, IMAGE_DRAW_REPEAT_Y, &r);
-          break;
-
-        case litehtml::background_repeat_repeat:
-          canvas_draw_image_ex(c, &img, IMAGE_DRAW_REPEAT, &r);
-          break;
-        default:
-          break;
-      }
-    }
-  }
-}
-
-
-void container_awtk::make_url(const litehtml::tchar_t* url, const litehtml::tchar_t* basepath,
-                              litehtml::tstring& out) {
-   my_make_url(url, basepath, out);
-}
-
 void container_awtk::draw_borders(litehtml::uint_ptr hdc, const litehtml::borders& borders,
                                   const litehtml::position& draw_pos, bool root) {
   int bdr_top = 0;
@@ -376,8 +296,6 @@ void container_awtk::draw_borders(litehtml::uint_ptr hdc, const litehtml::border
   vgcanvas_t* vg = lcd_get_vgcanvas(c->lcd);
   vgcanvas_save(vg);
   vgcanvas_translate(vg, c->ox, c->oy);
-
-  this->apply_clip(vg);
 
   vgcanvas_begin_path(vg);
 
@@ -603,65 +521,50 @@ void container_awtk::draw_borders(litehtml::uint_ptr hdc, const litehtml::border
   vgcanvas_restore(vg);
 }
 
-void container_awtk::set_caption(const litehtml::tchar_t* caption){};  //: set_caption
+void container_awtk::draw_list_marker(litehtml::uint_ptr hdc, const litehtml::list_marker& marker) {
+  canvas_t* c = (canvas_t*)hdc;
+  vgcanvas_t* vg = lcd_get_vgcanvas(c->lcd);
 
-void container_awtk::set_base_url(const litehtml::tchar_t* base_url) {
-  m_base_url = base_url;
-};  
-
-void container_awtk::link(const std::shared_ptr<litehtml::document>& ptr,
-                          const litehtml::element::ptr& el) {
- log_debug("container_awtk::link\n");
-}
-
-void container_awtk::on_anchor_click(const litehtml::tchar_t* url,
-                                     const litehtml::element::ptr& el) {
-  log_debug("click: %s\n", url);
-  this->make_url(url, m_base_url.c_str(), m_clicked_url);
-  widget_set_prop_str(this->view, "url", m_clicked_url.c_str());
-}
-
-void container_awtk::set_cursor(const litehtml::tchar_t* cursor) {
-}
-
-void container_awtk::transform_text(litehtml::tstring& text, litehtml::text_transform tt) {
-}
-
-void container_awtk::import_css(litehtml::tstring& text, const litehtml::tstring& url,
-                                litehtml::tstring& baseurl) {
-  uint32_t size = 0;
-  litehtml::tstring abs_url;
-  this->make_url(url.c_str(), m_base_url.c_str(), abs_url);
-
-  char* content = (char*)data_reader_read_all(abs_url.c_str(), &size);
-  if (content != NULL) {
-    text = content;
-    TKMEM_FREE(content);
+  if (!this->is_in_clip_rect(marker.pos)) {
+    return;
   }
-}
 
-void container_awtk::set_clip(const litehtml::position& pos,
-                              const litehtml::border_radiuses& bdr_radius, bool valid_x,
-                              bool valid_y) {
-}
+  if (!marker.image.empty()) {
+    bitmap_t img;
+    if (awtk_load_image(this->view, marker.image.c_str(), m_base_url.c_str(), &img) == RET_OK) {
+      rect_t r = rect_from_position(marker.pos);
 
-void container_awtk::del_clip() {
-}
-
-void container_awtk::apply_clip(vgcanvas_t* vg) {
-}
-
-void container_awtk::get_client_rect(litehtml::position& client) const {
-  client.x = 0;
-  client.y = 0;
-  client.width = this->view->w;
-  client.height = this->view->h;
-}
-
-std::shared_ptr<litehtml::element> container_awtk::create_element(
-    const litehtml::tchar_t* tag_name, const litehtml::string_map& attributes,
-    const std::shared_ptr<litehtml::document>& doc) {
-  return 0;
+      canvas_draw_image_ex(c, &img, IMAGE_DRAW_ICON, &r);
+    }
+  } else {
+    vgcanvas_save(vg);
+    vgcanvas_translate(vg, c->ox, c->oy);
+    switch (marker.marker_type) {
+      case litehtml::list_style_type_circle: {
+        vgcanvas_ellipse(vg, marker.pos.x, marker.pos.y, marker.pos.width, marker.pos.height);
+        vgcanvas_apply_stroke_color(vg, marker.color);
+        vgcanvas_stroke(vg);
+        break;
+      }
+      case litehtml::list_style_type_disc: {
+        vgcanvas_ellipse(vg, marker.pos.x, marker.pos.y, marker.pos.width, marker.pos.height);
+        vgcanvas_apply_fill_color(vg, marker.color);
+        vgcanvas_fill(vg);
+        break;
+      }
+      case litehtml::list_style_type_square: {
+        if (hdc) {
+          vgcanvas_rect(vg, marker.pos.x, marker.pos.y, marker.pos.width, marker.pos.height);
+          vgcanvas_apply_fill_color(vg, marker.color);
+          vgcanvas_fill(vg);
+        }
+        break;
+      }
+      default:
+        break;
+    }
+    vgcanvas_restore(vg);
+  }
 }
 
 void container_awtk::get_media_features(litehtml::media_features& media) const {
@@ -679,9 +582,39 @@ void container_awtk::get_media_features(litehtml::media_features& media) const {
   media.resolution = 96;
 }
 
-
-void container_awtk::get_language(litehtml::tstring& language, litehtml::tstring& culture) const {
+void container_awtk::get_language(litehtml::string& language, litehtml::string& culture) const {
   language = _t("en");
   culture = _t("");
 }
 
+void container_awtk::set_base_url(const char* base_url) {
+  m_base_url = base_url;
+};
+
+void container_awtk::on_anchor_click(const char* url,
+                                     const litehtml::element::ptr& el) {
+  log_debug("click: %s\n", url);
+  my_make_url(url, m_base_url.c_str(), m_clicked_url);
+  widget_set_prop_str(this->view, "url", m_clicked_url.c_str());
+}
+
+void container_awtk::on_mouse_event(const element::ptr& /*el*/, mouse_event /*event*/) {};
+void container_awtk::import_css(litehtml::string& text, const litehtml::string& url,
+                                litehtml::string& baseurl) {
+  uint32_t size = 0;
+  litehtml::string abs_url;
+  my_make_url(url.c_str(), m_base_url.c_str(), abs_url);
+
+  char* content = (char*)data_reader_read_all(abs_url.c_str(), &size);
+  if (content != NULL) {
+    text = content;
+    TKMEM_FREE(content);
+  }
+}
+
+void container_awtk::get_client_rect(litehtml::position& client) const {
+  client.x = 0;
+  client.y = 0;
+  client.width = this->view->w;
+  client.height = this->view->h;
+}

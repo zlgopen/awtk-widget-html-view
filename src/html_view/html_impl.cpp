@@ -33,24 +33,18 @@ static bool_t html_is_scollable(widget_t* widget);
 
 struct _html_impl_t {
   container_awtk container;
-  litehtml::context html_context;
 
-  litehtml::tstring m_url;
-  litehtml::tstring m_cursor;
-  litehtml::tstring m_clicked_url;
-  litehtml::tstring m_base_url;
+  litehtml::string m_url;
+  litehtml::string m_cursor;
+  litehtml::string m_clicked_url;
+  litehtml::string m_base_url;
 
   litehtml::document::ptr doc;
-  litehtml::context* doc_context;
 
   ~_html_impl_t() {
     log_debug("~_html_impl_t\n");
   }
 };
-
-static const char s_master_css[] = {
-#include "master.css.inc"
-    , 0};
 
 static uint32_t html_get_margin(widget_t* widget) {
   if (widget->astyle != NULL) {
@@ -69,7 +63,6 @@ static ret_t html_load(widget_t* widget) {
   char base_url[MAX_PATH + 1];
   html_t* html = HTML(widget);
   html_impl_t* impl = html->impl;
-  litehtml::context* ctx = &(impl->html_context);
   litehtml::document_container* container = &(impl->container);
 
   if (html->url != NULL && html->url[0]) {
@@ -79,7 +72,7 @@ static ret_t html_load(widget_t* widget) {
     path_dirname(html->url, base_url, MAX_PATH);
     container->set_base_url(base_url);
 
-    impl->doc = litehtml::document::createFromString(data, container, ctx);
+    impl->doc = litehtml::document::createFromString(data, container);
     TKMEM_FREE(data);
   } else if (widget->text.size > 0) {
     str_t str;
@@ -87,7 +80,7 @@ static ret_t html_load(widget_t* widget) {
     str_from_wstr(&str, widget->text.str);
 
     container->set_base_url("");
-    impl->doc = litehtml::document::createFromString(str.str, container, ctx);
+    impl->doc = litehtml::document::createFromString(str.str, container);
     str_reset(&str);
   }
 
@@ -508,7 +501,6 @@ ret_t html_on_event(widget_t* widget, event_t* e) {
 html_impl_t* html_impl_create(widget_t* widget) {
   html_impl_t* impl = new html_impl_t();
   if (impl != NULL) {
-    impl->html_context.load_master_stylesheet(s_master_css);
     impl->container.set_view(widget);  
   }
   return impl;

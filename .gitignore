@@ -32,3 +32,6 @@ event_log.bin
 res/assets/default/inc/fonts/default_full.res
 *.log
 res
+src/html_view.def
+idl
+temp
