@@ -598,7 +598,6 @@ void container_awtk::on_anchor_click(const char* url,
   widget_set_prop_str(this->view, "url", m_clicked_url.c_str());
 }
 
-void container_awtk::on_mouse_event(const element::ptr& /*el*/, mouse_event /*event*/) {};
 void container_awtk::import_css(litehtml::string& text, const litehtml::string& url,
                                 litehtml::string& baseurl) {
   uint32_t size = 0;

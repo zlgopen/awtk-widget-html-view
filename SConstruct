@@ -7,6 +7,7 @@ helper = app.Helper(ARGUMENTS)
 APP_ROOT = helper.APP_ROOT
 APP_CPPPATH=[
   os.path.join(APP_ROOT, "src"),
+  os.path.join(APP_ROOT, "3rd/include"),
   os.path.join(APP_ROOT, "3rd/litehtml"),
   os.path.join(APP_ROOT, "3rd/litehtml/src"),
   os.path.join(APP_ROOT, "3rd/litehtml/include"),

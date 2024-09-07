@@ -19,7 +19,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
+#include <my_strings.h>
 
 #include "string_piece.h"
 #include "util.h"
