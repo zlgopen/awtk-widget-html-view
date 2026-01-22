@@ -88,6 +88,7 @@ static ret_t html_load(widget_t* widget) {
     litehtml::document::ptr doc = impl->doc;
     doc->render(widget->w);
     widget_set_prop_int(widget, WIDGET_PROP_YOFFSET, 0);
+    emitter_dispatch_simple_event(widget->emitter, EVT_RESIZE);
   }
 
   return RET_OK;
